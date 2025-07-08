@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-[#02010a];
+}
+.text-shadow-glow {
+  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+}
+
+.card {   
+  background: rgba(2, 1, 10, 0.8);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
