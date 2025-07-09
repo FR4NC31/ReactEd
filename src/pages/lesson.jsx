@@ -1,35 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiPlay, FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { db } from '../../firebaseConfig';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 
 import Lesson1 from '../assets/Lesson1.png';
 import Lesson2 from '../assets/Lesson2.png';
 
-const lessons = [
-  {
-    id: 1,
-    image: Lesson1,
-    title: 'Exploring Chemical Reactions in Everyday Life',
-    score: 'NaN', // ← Temporary score
-  },
-  {
-    id: 2,
-    image: Lesson2,
-    title: 'Identifying Common Acids, Bases, and Salts Using Indicators',
-    score: 'NaN', // ← Temporary score
-  },
-];
-
 const Lesson = () => {
   const navigate = useNavigate();
   const [activeLesson, setActiveLesson] = useState(null);
+  const [lessonScores, setLessonScores] = useState({});
+
+  const username = localStorage.getItem('username') || 'Guest';
+
+  const lessons = [
+    {
+      id: 1,
+      image: Lesson1,
+      title: 'Exploring Chemical Reactions in Everyday Life',
+    },
+    {
+      id: 2,
+      image: Lesson2,
+      title: 'Identifying Common Acids, Bases, and Salts Using Indicators',
+    },
+  ];
+
+  useEffect(() => {
+    const fetchScores = async () => {
+      const scores = {};
+      for (const lesson of lessons) {
+        const q = query(
+          collection(db, 'Activity'),
+          where('username', '==', username),
+          where('Lesson', '==', `Lesson ${lesson.id}`),
+          orderBy('timestamp', 'desc'),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          scores[lesson.id] = querySnapshot.docs[0].data().Score;
+        } else {
+          scores[lesson.id] = 'Not yet played';
+        }
+      }
+      setLessonScores(scores);
+    };
+
+    fetchScores();
+  }, [username]);
 
   const handleCardClick = (id) => {
     setActiveLesson(id);
     setTimeout(() => {
       navigate(`/lesson/${id}`);
-    }, 500); // delay for zoom animation
+    }, 500);
   };
 
   return (
@@ -58,8 +85,8 @@ const Lesson = () => {
             animate={
               activeLesson
                 ? activeLesson === lesson.id
-                  ? { scale: 1.1, zIndex: 20 } // zoom in
-                  : { scale: 0.9, opacity: 0.3, zIndex: 0 } // zoom out others
+                  ? { scale: 1.1, zIndex: 20 }
+                  : { scale: 0.9, opacity: 0.3, zIndex: 0 }
                 : { scale: 1, opacity: 1 }
             }
             transition={{ duration: 0.5 }}
@@ -78,7 +105,7 @@ const Lesson = () => {
                 </h2>
                 {/* 👇 Score Display */}
                 <p className="text-sm text-cyan-100 text-center mt-1">
-                  Score: {lesson.score}
+                  Score: {lessonScores[lesson.id] || 'Loading...'}
                 </p>
                 <div className="flex justify-end mt-2">
                   <div className="bg-green-400 hover:bg-green-300 text-black w-10 h-10 mt-10 flex items-center justify-center rounded-full">
@@ -91,7 +118,7 @@ const Lesson = () => {
         ))}
       </div>
 
-      {/* Optional AnimatePresence if needed */}
+      {/* Optional AnimatePresence */}
       <AnimatePresence>
         {activeLesson && (
           <motion.div

@@ -1,18 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const leaderboardData = [
-  { username: 'AceGamer123', score: 18 },
-  { username: 'ScienceNerd', score: 17 },
-  { username: 'ChemMaster', score: 16 },
-  { username: 'ReactKid', score: 15 },
-  { username: 'LabRat01', score: 14 },
-];
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebaseConfig';
 
 const medals = ['🥇', '🥈', '🥉'];
 
 const Leaderboard = () => {
   const navigate = useNavigate();
+  const [leaderboardData, setLeaderboardData] = useState([]);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'Activity'));
+        const scoreMap = new Map();
+
+        querySnapshot.forEach(doc => {
+          const { username, Score } = doc.data();
+          const numericScore = parseInt(Score.split('/')[0]);
+          if (!scoreMap.has(username)) {
+            scoreMap.set(username, numericScore);
+          } else {
+            scoreMap.set(username, scoreMap.get(username) + numericScore);
+          }
+        });
+
+        const sorted = Array.from(scoreMap.entries())
+          .map(([username, total]) => ({ username, score: total }))
+          .sort((a, b) => b.score - a.score);
+
+        setLeaderboardData(sorted);
+      } catch (error) {
+        console.error('❌ Error fetching leaderboard:', error);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#02010a] text-white font-sans flex flex-col items-center px-4 py-10">

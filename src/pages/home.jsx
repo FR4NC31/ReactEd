@@ -152,11 +152,14 @@ function App() {
         const docRef = doc(db, 'Student', currentUser.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setUsername(docSnap.data().username || '');
+          const name = docSnap.data().username || '';
+          setUsername(name);
+          localStorage.setItem('username', name);
         }
       } else {
         setUser(null);
         setUsername('');
+        localStorage.removeItem('username');
       }
     });
     return () => unsubscribe();
@@ -191,6 +194,7 @@ function App() {
         email,
         uid: userCredential.user.uid
       });
+      localStorage.setItem('username', username);
       setShowRegister(false);
       setSuccess('Successfully registered!');
       signOut(auth); // Stay logged out after registration
@@ -205,6 +209,7 @@ function App() {
 
   const handleLogout = () => {
     signOut(auth);
+    localStorage.removeItem('username');
   };
 
   return (
@@ -236,7 +241,7 @@ function App() {
             >
               ▶ Play
             </button>
-           <button
+            <button
               onClick={() => navigate('/leaderboard')}
               className="border-2 border-cyan-400 px-8 py-3 rounded-full text-lg hover:bg-cyan-400 hover:text-black transition"
             >
