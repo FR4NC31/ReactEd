@@ -1,37 +1,36 @@
+// src/pages/Lesson1.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlay } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import ParticleBackground from '../components/ParticleBackground';
 import ImageInteraction from '../../assets/image_interaction1.png';
-import MiniActivity from '../components/miniActiivity1';
 
 const Lesson1 = () => {
   const navigate = useNavigate();
   const [popup, setPopup] = useState(null);
   const [isExiting, setIsExiting] = useState(false);
-  const [showMiniActivity, setShowMiniActivity] = useState(false);
-  const [miniActivityCompleted, setMiniActivityCompleted] = useState(false);
 
   const explanations = {
     gas: {
       emoji: '💨',
       title: 'Gas Formation',
-      text: `When a chemical reaction produces gas, you often see bubbles forming or hear a fizzing sound...`,
+      text: 'When a chemical reaction produces gas, you might see bubbles or fizzing. This is a key sign a chemical change has occurred!',
     },
     energy: {
       emoji: '🔥',
-      title: 'Energy Change (Light or Heat)',
-      text: `Chemical reactions can release or absorb energy...`,
+      title: 'Energy Change',
+      text: 'Reactions can release heat (exothermic) or absorb heat (endothermic). You may also see light or feel temperature change.',
     },
     color: {
       emoji: '🌈',
       title: 'Color Change',
-      text: `When a new substance forms, its color might differ...`,
+      text: 'A permanent color change often means new substances have formed, indicating a chemical reaction.',
     },
     precipitate: {
       emoji: '⚗️',
       title: 'Precipitate Formation',
-      text: `A precipitate is a solid that forms when two clear solutions...`,
+      text: 'Sometimes two clear liquids form a solid—called a precipitate—when mixed. That’s a chemical reaction!',
     },
   };
 
@@ -40,59 +39,69 @@ const Lesson1 = () => {
     setTimeout(() => navigate(path), 400);
   };
 
-  const handleMiniActivityDone = () => {
-    setMiniActivityCompleted(true);
-    setShowMiniActivity(false);
-  };
-
   return (
     <AnimatePresence>
       {!isExiting && (
         <motion.div
-          className="min-h-screen px-6 py-10 flex flex-col items-center bg-[#02010a] text-white font-sans"
+          className="min-h-screen relative bg-[#02010a] text-white flex flex-col items-center px-6 py-10 font-sans"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h1 className="text-4xl sm:text-5xl font-bold text-cyan-300 mb-8 animate-pulse tracking-widest glow">
+          <ParticleBackground />
+
+          <h1 className="text-4xl sm:text-5xl font-bold text-cyan-300 mb-8 tracking-wider text-center animate-pulse z-10">
             Lesson 1: Exploring Chemical Reactions
           </h1>
 
-          {/* Definition Card */}
-          <div className="card max-w-4xl w-full p-6 rounded-lg mb-8">
-            <h2 className="text-2xl text-cyan-300 font-semibold mb-4">What is a Chemical Reaction?</h2>
-            <p className="text-cyan-100 mb-4">
-              A chemical reaction is a process in which one or more substances (reactants) are converted into new substances...
+          {/* Lesson Card */}
+          <div className="card max-w-4xl w-full bg-white/5 border border-cyan-400 rounded-lg p-6 mb-8 backdrop-blur z-10">
+            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">What is a Chemical Reaction?</h2>
+            <p className="text-cyan-100 leading-relaxed">
+              A chemical reaction is a process where one or more substances (reactants) transform into new substances (products).
+              These reactions involve breaking and forming of chemical bonds, and are often accompanied by observable signs.
             </p>
-            <button
-              onClick={() => setShowMiniActivity(true)}
-              className="mt-4 px-6 py-2 bg-yellow-400 hover:bg-yellow-300 text-black rounded-full font-semibold disabled:opacity-50"
-              disabled={miniActivityCompleted}
-            >
-              🎯 Mini Activity
-            </button>
           </div>
 
-          {/* Interactive Image */}
-          <div className="card max-w-4xl w-full p-6 rounded-lg mb-8">
-            <h2 className="text-2xl text-cyan-300 font-semibold mb-4">The Signs of Chemical Reactions</h2>
-            <div className="relative w-full">
-              <img src={ImageInteraction} alt="Indicators" className="rounded w-full mb-4" />
-              <button onClick={() => setPopup(explanations.gas)} className="absolute top-[20%] left-[30%] w-6 h-6 bg-cyan-400 rounded-full opacity-80 hover:scale-110 transition" />
-              <button onClick={() => setPopup(explanations.energy)} className="absolute top-[25%] left-[78%] w-6 h-6 bg-cyan-400 rounded-full opacity-80 hover:scale-110 transition" />
-              <button onClick={() => setPopup(explanations.color)} className="absolute top-[73%] left-[26%] w-6 h-6 bg-cyan-400 rounded-full opacity-80 hover:scale-110 transition" />
-              <button onClick={() => setPopup(explanations.precipitate)} className="absolute top-[70%] left-[60%] w-6 h-6 bg-cyan-400 rounded-full opacity-80 hover:scale-110 transition" />
+          {/* Interactive Hotspot Image */}
+          <div className="card max-w-4xl w-full bg-white/5 border border-cyan-400 rounded-lg p-6 mb-8 backdrop-blur z-10">
+            <h2 className="text-2xl font-semibold text-cyan-300 mb-4">Signs of Chemical Reactions</h2>
+            <div className="relative w-full rounded-lg overflow-hidden shadow-lg">
+              <img src={ImageInteraction} alt="Chemical Reaction Indicators" className="w-full rounded-lg" />
+
+              {/* Glowing Hotspots */}
+              <button
+                onClick={() => setPopup(explanations.gas)}
+                className="absolute top-[20%] left-[30%] w-6 h-6 bg-cyan-300 rounded-full glow hover:scale-110 transition duration-200"
+              />
+              <button
+                onClick={() => setPopup(explanations.energy)}
+                className="absolute top-[25%] left-[78%] w-6 h-6 bg-cyan-300 rounded-full glow hover:scale-110 transition duration-200"
+              />
+              <button
+                onClick={() => setPopup(explanations.color)}
+                className="absolute top-[73%] left-[26%] w-6 h-6 bg-cyan-300 rounded-full glow hover:scale-110 transition duration-200"
+              />
+              <button
+                onClick={() => setPopup(explanations.precipitate)}
+                className="absolute top-[70%] left-[60%] w-6 h-6 bg-cyan-300 rounded-full glow hover:scale-110 transition duration-200"
+              />
             </div>
           </div>
 
-          {/* Popup */}
+          {/* Popup Modal */}
           {popup && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-[#02010a] text-white max-w-lg p-6 rounded-lg border border-cyan-400">
-                <h3 className="text-xl text-cyan-300 font-semibold mb-2">{popup.emoji} {popup.title}</h3>
-                <pre className="text-cyan-100 whitespace-pre-wrap mb-4">{popup.text}</pre>
-                <button onClick={() => setPopup(null)} className="mt-2 px-4 py-2 bg-red-500 hover:bg-red-400 text-white rounded-full">
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+              <div className="bg-[#02010a] border border-cyan-400 max-w-md w-full rounded-lg p-6 shadow-lg">
+                <h3 className="text-xl font-semibold text-cyan-300 mb-2">
+                  {popup.emoji} {popup.title}
+                </h3>
+                <p className="text-cyan-100 whitespace-pre-wrap mb-4">{popup.text}</p>
+                <button
+                  onClick={() => setPopup(null)}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-400 text-white rounded-full"
+                >
                   Close
                 </button>
               </div>
@@ -100,40 +109,22 @@ const Lesson1 = () => {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between max-w-4xl w-full mt-4 px-6">
+          <div className="flex justify-between max-w-4xl w-full mt-4 z-10">
             <button
               onClick={() => handleNavigate('/lesson')}
-              className="bg-gray-500 hover:bg-gray-400 text-white px-6 py-2 rounded-full flex items-center gap-2"
+              className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-full flex items-center gap-2"
             >
-              <FiArrowLeft className="h-5 w-5" />
+              <FiArrowLeft size={18} />
               Back
             </button>
+
             <button
               onClick={() => handleNavigate('/activity/1')}
-              className="bg-green-400 hover:bg-green-300 text-black px-6 py-2 rounded-full flex items-center gap-2"
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full transition shadow-md"
             >
-              Play Activity
-              <FiPlay className="h-5 w-5" />
+              ▶️ Play Activity
             </button>
           </div>
-
-          {/* Mini Activity Modal */}
-          {showMiniActivity && (
-            <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-              <div className="bg-[#02010a] max-w-4xl w-full mx-4 rounded-xl p-6 border border-cyan-400 overflow-y-auto max-h-[90vh]">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold text-cyan-300">🎯 Mini Activity: Signs of Chemical Reactions</h2>
-                  <button
-                    onClick={handleMiniActivityDone}
-                    className="text-red-400 hover:text-red-300 text-lg font-semibold"
-                  >
-                    ✖ Close
-                  </button>
-                </div>
-                <MiniActivity />
-              </div>
-            </div>
-          )}
         </motion.div>
       )}
     </AnimatePresence>

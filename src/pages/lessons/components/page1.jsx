@@ -1,79 +1,100 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Carbonates from '../../../assets/carbonates.png';
+import Fire from '../../../assets/fire.png';
+import Girl from '../../../assets/girl.png';
+import Pipe from '../../../assets/pipe.png';
+import useSound from 'use-sound';
+import clickSFX from '../../../assets/click.mp3';
 
-const page1 = () => {
+const reactions = [
+  {
+    title: 'Combustion Reaction',
+    equation: 'CH₄ + 2O₂ → CO₂ + 2H₂O + energy',
+    description: `Combustion is a chemical reaction where a substance reacts with oxygen, releasing energy, usually in the form of heat and light.`,
+    environmentImpact: {
+      natural: `Excessive combustion from cars and factories produces CO₂ and other pollutants that contribute to climate change and acid rain.`,
+      built: `Used in engines, power plants, and heating systems — but needs to be controlled to reduce fire hazards and pollution.`,
+    },
+    image: Fire,
+  },
+  {
+    title: 'Acids Reacting with Metals',
+    equation: 'Mg + 2HCl → MgCl₂ + H₂',
+    description: `When acids come into contact with reactive metals like iron, zinc, or magnesium, they produce a salt and hydrogen gas.`,
+    environmentImpact: {
+      natural: `Acid rain corrodes metal structures, bridges, and historical monuments.`,
+      built: `Plumbing and metal tools degrade when exposed to acids, increasing maintenance costs.`,
+    },
+    image: Pipe,
+  },
+  {
+    title: 'Acids Reacting with Carbonates',
+    equation: 'CaCO₃ + 2HCl → CaCl₂ + CO₂ + H₂O',
+    description: `Acids also react with carbonates to release CO₂ gas.`,
+    environmentImpact: {
+      natural: `Acids erode limestone and marble rocks, altering landscapes.`,
+      built: `Acid rain damages carbonate-rich buildings and statues.`,
+    },
+    image: Carbonates,
+  },
+  {
+    title: 'Photosynthesis',
+    equation: '6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂',
+    description: `Plants convert CO₂ and water into glucose and oxygen using sunlight.`,
+    environmentImpact: {
+      natural: `Supports all life by producing oxygen and removing carbon dioxide — essential for climate balance.`,
+      built: `Urban reforestation and green designs help cool cities and purify air.`,
+    },
+    image: Girl,
+  },
+];
+
+const PageThree = () => {
+  const [viewed, setViewed] = useState([]);
+  const [playClick] = useSound(clickSFX);
+
+  const handleClick = (index) => {
+    playClick();
+    if (!viewed.includes(index)) {
+      setViewed([...viewed, index]);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <p>
-          Acids and bases are like the dynamic duo of chemistry! Acids release hydrogen ions (H⁺) in
-          water, have a sour taste, a pH below 7, and turn blue litmus paper red. Bases release
-          hydroxide ions (OH⁻), have a bitter taste, a pH above 7, and turn red litmus paper blue.
-          Both react to form salts and water in neutralisation reactions.
-        </p>
+      <div className="text-cyan-200 font-semibold text-center">
+        Reactions Discovered: {viewed.length} / {reactions.length}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl flex-1">
-          <h2 className="text-cyan-300 text-xl font-bold mb-2">Properties of Acids</h2>
-          <ul className="list-disc pl-6">
-            <li>Taste sour and change blue litmus paper to red.</li>
-            <li>Highly reactive with metals and release hydrogen gas.</li>
-            <li>Common acids: HCl, H₂SO₄, CH₃COOH.</li>
-          </ul>
-        </div>
-        <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl flex-1">
-          <h2 className="text-cyan-300 text-xl font-bold mb-2">Properties of Bases</h2>
-          <ul className="list-disc pl-6">
-            <li>Taste bitter and feel slippery.</li>
-            <li>Change red litmus paper to blue.</li>
-            <li>Examples: NaOH, Ca(OH)₂, NH₃.</li>
-          </ul>
-        </div>
+      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl shadow-lg">
+        <h2 className="text-cyan-300 text-2xl font-bold mb-4">
+          Chemical Reactions and Their Impact on Our World
+        </h2>
+        <p>Chemical reactions are not just laboratory processes — they happen around us every day! Understanding them helps us protect the environment, design better buildings, grow healthy crops, and even breathe.</p>
       </div>
 
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">What are Salts and How are They Formed?</h2>
-        <p>Salts are ionic compounds composed of positive ions (cations) from a base
-          and negative ions (anions) from an acid. The formation of salts occurs
-          through the neutralisation reaction between an acid and a base.</p>
-      </div>
-
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-4 text-center">Difference Between Acids, Bases, and Salts</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm border-collapse">
-            <thead>
-              <tr className="text-left text-cyan-300">
-                <th className="border border-cyan-300 px-4 py-2">Property</th>
-                <th className="border border-cyan-300 px-4 py-2">Acids</th>
-                <th className="border border-cyan-300 px-4 py-2">Bases</th>
-                <th className="border border-cyan-300 px-4 py-2">Salts</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td className="border px-4 py-2">Definition</td><td className="border px-4 py-2">Release H⁺ ions</td><td className="border px-4 py-2">Release OH⁻ ions</td><td className="border px-4 py-2">Formed from acid + base</td></tr>
-              <tr><td className="border px-4 py-2">Taste</td><td className="border px-4 py-2">Sour</td><td className="border px-4 py-2">Bitter</td><td className="border px-4 py-2">Varies</td></tr>
-              <tr><td className="border px-4 py-2">Litmus Test</td><td className="border px-4 py-2">Turns blue litmus red</td><td className="border px-4 py-2">Turns red litmus blue</td><td className="border px-4 py-2">No effect</td></tr>
-              <tr><td className="border px-4 py-2">pH Range</td><td className="border px-4 py-2">Less than 7</td><td className="border px-4 py-2">Greater than 7</td><td className="border px-4 py-2">Around 7</td></tr>
-              <tr><td className="border px-4 py-2">Reaction with Metals</td><td className="border px-4 py-2">Produces H₂ gas</td><td className="border px-4 py-2">Usually no reaction</td><td className="border px-4 py-2">No direct reaction</td></tr>
-              <tr><td className="border px-4 py-2">Examples</td><td className="border px-4 py-2">HCl, H₂SO₄, CH₃COOH</td><td className="border px-4 py-2">NaOH, KOH, NH₄OH</td><td className="border px-4 py-2">NaCl, KNO₃, CaCO₃</td></tr>
-            </tbody>
-          </table>
-          <div className="mt-4 text-center">
-                <iframe
-                width="1050"
-                height="315"
-                src="https://www.youtube.com/embed/mnbS56HQbaU?si=J13QMDdAg_bnONM_"
-                title="Watch Explanation"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="mx-auto rounded-lg"
-                ></iframe>
+      <div className="grid gap-6">
+        {reactions.map((reaction, index) => (
+          <div
+            key={index}
+            className={`transition-transform duration-300 transform hover:scale-[1.02] bg-white/5 border border-cyan-400/30 rounded-xl overflow-hidden shadow-xl cursor-pointer group ${
+              viewed.includes(index) ? 'ring-2 ring-cyan-300' : ''
+            }`}
+            onClick={() => handleClick(index)}
+          >
+            <div className="p-6 space-y-3">
+              <h2 className="text-xl text-cyan-300 font-bold">{index + 1}. {reaction.title}</h2>
+              <p className="text-cyan-200 font-mono">{reaction.equation}</p>
+              <p>{reaction.description}</p>
+              <p><strong>Natural Environment:</strong> {reaction.environmentImpact.natural}</p>
+              <p><strong>Built Environment:</strong> {reaction.environmentImpact.built}</p>
             </div>
-        </div>
+            <img src={reaction.image} alt={reaction.title} className="w-full h-64 sm:h-72 md:h-80 lg:h-96 object-cover rounded-b-xl border-t border-cyan-300/20" />
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-export default page1;
+export default PageThree;

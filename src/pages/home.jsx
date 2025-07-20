@@ -1,28 +1,22 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../../firebaseConfig';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
+  signOut,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
-import {
-  doc,
-  setDoc,
-  getDoc
-} from 'firebase/firestore';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import ParticleBackground from './components/ParticleBackground';
+import Logo1 from '../assets/logo1.png';
+import clickSoundFile from '../assets/click.mp3';
 
-const Circle = ({ size, top, left, delay }) => (
-  <div
-    className="absolute rounded-full border-2 border-cyan-400/30 animate-ping"
-    style={{ width: size, height: size, top, left, animationDelay: delay }}
-  ></div>
-);
-
-const Modal = ({ title, fields, visible, onClose, onSubmit }) => {
+// Modal for Login/Register
+const Modal = ({ title, fields, visible, onClose, onSubmit, playClick, showForgot }) => {
   const [inputs, setInputs] = useState(Array(fields.length).fill(''));
   const [showPasswords, setShowPasswords] = useState(fields.map(() => false));
 
@@ -42,6 +36,7 @@ const Modal = ({ title, fields, visible, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    playClick();
     onSubmit(inputs);
   };
 
@@ -49,7 +44,7 @@ const Modal = ({ title, fields, visible, onClose, onSubmit }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-      <div className="bg-[#02010a] text-white p-6 rounded-lg w-96 border border-cyan-400/30 shadow-lg">
+      <div className="bg-[#02010a] text-white p-6 rounded-lg w-11/12 max-w-md border border-cyan-400/30 shadow-lg">
         <h2 className="text-xl font-bold mb-4 text-cyan-300">{title}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {fields.map((field, index) => (
@@ -79,10 +74,21 @@ const Modal = ({ title, fields, visible, onClose, onSubmit }) => {
               )}
             </div>
           ))}
+          {showForgot && (
+            <p
+              onClick={showForgot}
+              className="text-sm text-cyan-400 hover:underline cursor-pointer text-right"
+            >
+              Forgot Password?
+            </p>
+          )}
           <div className="flex justify-end space-x-2 mt-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                playClick();
+                onClose();
+              }}
               className="text-red-400 hover:underline"
             >
               Cancel
@@ -100,15 +106,19 @@ const Modal = ({ title, fields, visible, onClose, onSubmit }) => {
   );
 };
 
-const ErrorModal = ({ message, onClose }) => {
+// Error Modal
+const ErrorModal = ({ message, onClose, playClick }) => {
   if (!message) return null;
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-[#02010a] text-white p-6 rounded-lg border border-red-400 w-96 text-center">
+      <div className="bg-[#02010a] text-white p-6 rounded-lg border border-red-400 w-11/12 max-w-md text-center">
         <h2 className="text-xl font-bold text-red-400 mb-4">Error</h2>
         <p className="mb-4">{message}</p>
         <button
-          onClick={onClose}
+          onClick={() => {
+            playClick();
+            onClose();
+          }}
           className="bg-red-400 px-4 py-2 rounded text-black hover:bg-red-300"
         >
           Close
@@ -118,15 +128,19 @@ const ErrorModal = ({ message, onClose }) => {
   );
 };
 
-const SuccessModal = ({ message, onClose }) => {
+// Success Modal
+const SuccessModal = ({ message, onClose, playClick }) => {
   if (!message) return null;
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-[#02010a] text-white p-6 rounded-lg border border-green-400 w-96 text-center">
+      <div className="bg-[#02010a] text-white p-6 rounded-lg border border-green-400 w-11/12 max-w-md text-center">
         <h2 className="text-xl font-bold text-green-400 mb-4">Success</h2>
         <p className="mb-4">{message}</p>
         <button
-          onClick={onClose}
+          onClick={() => {
+            playClick();
+            onClose();
+          }}
           className="bg-green-400 px-4 py-2 rounded text-black hover:bg-green-300"
         >
           OK
@@ -136,14 +150,80 @@ const SuccessModal = ({ message, onClose }) => {
   );
 };
 
+// Forgot Password Modal
+const ForgotPasswordModal = ({ visible, onClose, playClick }) => {
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    playClick();
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMessage('Password reset link sent! Check your email.');
+    } catch (err) {
+      setMessage('Failed to send reset email. Check your email address.');
+    }
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+      <div className="bg-[#02010a] text-white p-6 rounded-lg border border-cyan-400 w-11/12 max-w-md text-center">
+        <h2 className="text-xl font-bold text-cyan-300 mb-4">Reset Password</h2>
+        <form onSubmit={handleReset} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Enter your registered email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full border border-cyan-400/20 bg-transparent px-3 py-2 rounded text-white placeholder-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+          <button
+            type="submit"
+            className="bg-cyan-400 text-black px-4 py-2 rounded hover:bg-cyan-300 w-full"
+          >
+            Send Reset Link
+          </button>
+        </form>
+        {message && <p className="mt-4 text-sm text-cyan-300">{message}</p>}
+        <button
+          onClick={() => {
+            playClick();
+            onClose();
+            setMessage('');
+            setEmail('');
+          }}
+          className="mt-4 text-red-400 hover:underline"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Main App
 function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [soundOn, setSoundOn] = useState(true);
   const navigate = useNavigate();
+  const clickSound = useRef(new Audio(clickSoundFile));
+
+  const playClick = () => {
+    if (soundOn) {
+      clickSound.current.currentTime = 0;
+      clickSound.current.play();
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -166,10 +246,7 @@ function App() {
   }, []);
 
   const handleLogin = async ([email, password]) => {
-    if (!email || !password) {
-      setError('Please fill in both fields.');
-      return;
-    }
+    if (!email || !password) return setError('Please fill in both fields.');
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setShowLogin(false);
@@ -179,25 +256,20 @@ function App() {
   };
 
   const handleRegister = async ([email, username, password, confirmPassword]) => {
-    if (!email || !username || !password || !confirmPassword) {
-      setError('All fields are required.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match!');
-      return;
-    }
+    if (!email || !username || !password || !confirmPassword)
+      return setError('All fields are required.');
+    if (password !== confirmPassword) return setError('Passwords do not match!');
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await setDoc(doc(db, 'Student', userCredential.user.uid), {
         username,
         email,
-        uid: userCredential.user.uid
+        uid: userCredential.user.uid,
       });
       localStorage.setItem('username', username);
       setShowRegister(false);
       setSuccess('Successfully registered!');
-      signOut(auth); // Stay logged out after registration
+      signOut(auth);
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         setError('Email already exists.');
@@ -208,79 +280,103 @@ function App() {
   };
 
   const handleLogout = () => {
+    playClick();
     signOut(auth);
     localStorage.removeItem('username');
   };
 
   return (
     <div className="min-h-screen w-full font-sans bg-[#02010a] text-white overflow-hidden relative">
-      <div className="absolute w-full h-full">
-        <Circle size="100px" top="40%" left="45%" delay="0s" />
-        <Circle size="120px" top="55%" left="30%" delay="1s" />
-        <Circle size="140px" top="20%" left="60%" delay="2s" />
-        <Circle size="80px" top="70%" left="70%" delay="3s" />
-        <Circle size="110px" top="35%" left="75%" delay="4s" />
+      <ParticleBackground />
+
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={() => {
+            playClick();
+            setSoundOn(!soundOn);
+          }}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition text-cyan-300"
+        >
+          {soundOn ? <FiVolume2 size={22} /> : <FiVolumeX size={22} />}
+        </button>
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col justify-center items-center text-center px-4">
-        <h1 className="text-4xl sm:text-5xl tracking-[0.3em] mb-6 text-cyan-300 animate-pulse">
-          ReactEd
-        </h1>
-
+        <img src={Logo1} alt="App Logo" className="mx-auto mb-8 w-32 sm:w-40 object-contain" />
         {user && (
-          <p className="mb-6 text-lg">
+          <p className="mb-6 text-base sm:text-lg">
             Welcome <span className="text-cyan-300 font-semibold">{username}</span>!
           </p>
         )}
 
-        {user ? (
-          <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row">
-            <button
-              onClick={() => navigate('/lesson')}
-              className="border-2 border-cyan-400 px-8 py-3 rounded-full text-lg hover:bg-cyan-400 hover:text-black transition"
-            >
-              ▶ Play
-            </button>
-            <button
-              onClick={() => navigate('/leaderboard')}
-              className="border-2 border-cyan-400 px-8 py-3 rounded-full text-lg hover:bg-cyan-400 hover:text-black transition"
-            >
-              🏆 Leaderboard
-            </button>
-            <button
-              onClick={handleLogout}
-              className="border-2 border-red-400 px-8 py-3 rounded-full text-lg hover:bg-red-400 hover:text-black transition"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row">
-            <button
-              onClick={() => setShowLogin(true)}
-              className="border-2 border-cyan-400 px-8 py-3 rounded-full text-lg hover:bg-cyan-400 hover:text-black transition"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => setShowRegister(true)}
-              className="border-2 border-cyan-400 px-8 py-3 rounded-full text-lg hover:bg-cyan-400 hover:text-black transition"
-            >
-              Register
-            </button>
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
+          {user ? (
+            <>
+              <button
+                onClick={() => {
+                  playClick();
+                  navigate('/lesson');
+                }}
+                className="w-full px-6 py-3 rounded-full text-base sm:text-lg font-semibold border-2 border-cyan-400 bg-transparent hover:bg-cyan-400 hover:text-black transition"
+              >
+                ▶ Play
+              </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  navigate('/leaderboard');
+                }}
+                className="w-full px-6 py-3 rounded-full text-base sm:text-lg font-semibold border-2 border-cyan-400 bg-transparent hover:bg-cyan-400 hover:text-black transition"
+              >
+                🏆 Leaderboard
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full px-6 py-3 rounded-full text-base sm:text-lg font-semibold border-2 border-red-400 bg-transparent hover:bg-red-400 hover:text-black transition"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  playClick();
+                  setShowLogin(true);
+                }}
+                className="w-full px-6 py-3 rounded-full md:ml-30 text-base sm:text-lg font-semibold border-2 border-cyan-400 bg-transparent hover:bg-cyan-400 hover:text-black transition"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  setShowRegister(true);
+                }}
+                className="w-full px-6 py-3 rounded-full md:ml-30 text-base sm:text-lg font-semibold border-2 border-cyan-400 bg-transparent hover:bg-cyan-400 hover:text-black transition"
+              >
+                Register
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
+      {/* Modals */}
       <Modal
         title="Login"
         fields={[
           { placeholder: 'Email', type: 'email' },
-          { placeholder: 'Password', type: 'password' }
+          { placeholder: 'Password', type: 'password' },
         ]}
         visible={showLogin}
         onClose={() => setShowLogin(false)}
         onSubmit={handleLogin}
+        playClick={playClick}
+        showForgot={() => {
+          setShowLogin(false);
+          setShowForgotModal(true);
+        }}
       />
 
       <Modal
@@ -289,15 +385,21 @@ function App() {
           { placeholder: 'Email', type: 'email' },
           { placeholder: 'Username', type: 'text' },
           { placeholder: 'Password', type: 'password' },
-          { placeholder: 'Confirm Password', type: 'password' }
+          { placeholder: 'Confirm Password', type: 'password' },
         ]}
         visible={showRegister}
         onClose={() => setShowRegister(false)}
         onSubmit={handleRegister}
+        playClick={playClick}
       />
 
-      <ErrorModal message={error} onClose={() => setError('')} />
-      <SuccessModal message={success} onClose={() => setSuccess('')} />
+      <ErrorModal message={error} onClose={() => setError('')} playClick={playClick} />
+      <SuccessModal message={success} onClose={() => setSuccess('')} playClick={playClick} />
+      <ForgotPasswordModal
+        visible={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        playClick={playClick}
+      />
     </div>
   );
 }

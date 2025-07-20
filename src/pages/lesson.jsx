@@ -1,136 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { FiPlay, FiArrowLeft } from 'react-icons/fi';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { db } from '../../firebaseConfig';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
+import { auth, db } from '../../firebaseConfig';
 
-import Lesson1 from '../assets/Lesson1.png';
-import Lesson2 from '../assets/Lesson2.png';
+import ParticleBackground from './components/ParticleBackground';
+
+import UnlockSound from '../assets/unlock.mp3';
+import ErrorSound from '../assets/error.mp3';
+import ClickSound from '../assets/click.mp3';
+
+import Lesson1Img from '../assets/lesson1.png';
+import Lesson2Img from '../assets/lesson2.png';
+import Lesson3Img from '../assets/lesson3.png';
+import Lesson4Img from '../assets/lesson4.png';
+import Lesson5Img from '../assets/lesson5.png';
 
 const Lesson = () => {
+  const [progress, setProgress] = useState({});
+  const [animateUnlock, setAnimateUnlock] = useState(false);
   const navigate = useNavigate();
-  const [activeLesson, setActiveLesson] = useState(null);
-  const [lessonScores, setLessonScores] = useState({});
 
-  const username = localStorage.getItem('username') || 'Guest';
+  const unlockAudio = useRef(new Audio(UnlockSound));
+  const errorAudio = useRef(new Audio(ErrorSound));
+  const clickAudio = useRef(new Audio(ClickSound));
 
-  const lessons = [
-    {
-      id: 1,
-      image: Lesson1,
-      title: 'Exploring Chemical Reactions in Everyday Life',
-    },
-    {
-      id: 2,
-      image: Lesson2,
-      title: 'Identifying Common Acids, Bases, and Salts Using Indicators',
-    },
-  ];
+  const lessonImages = {
+    1: Lesson1Img,
+    2: Lesson2Img,
+    3: Lesson3Img,
+    4: Lesson4Img,
+    5: Lesson5Img,
+  };
 
   useEffect(() => {
-    const fetchScores = async () => {
-      const scores = {};
-      for (const lesson of lessons) {
-        const q = query(
-          collection(db, 'Activity'),
-          where('username', '==', username),
-          where('Lesson', '==', `Lesson ${lesson.id}`),
-          orderBy('timestamp', 'desc'),
-          limit(1)
-        );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          scores[lesson.id] = querySnapshot.docs[0].data().Score;
-        } else {
-          scores[lesson.id] = 'Not yet played';
+    const fetchProgress = async () => {
+      const username = localStorage.getItem('username');
+      if (!username) return;
+
+      try {
+        const querySnapshot = await getDocs(collection(db, 'StudentProgress'));
+        let userDoc = null;
+
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.username === username) {
+            userDoc = data;
+          }
+        });
+
+        if (userDoc) {
+          setProgress(userDoc);
+          if (userDoc.lesson2?.unlocked && !userDoc.lesson2?.glowPlayed) {
+            setAnimateUnlock(true);
+            unlockAudio.current.play().catch(() => {});
+            setTimeout(() => setAnimateUnlock(false), 3000);
+          }
         }
+      } catch (error) {
+        console.error('Error loading progress:', error);
       }
-      setLessonScores(scores);
     };
 
-    fetchScores();
-  }, [username]);
+    fetchProgress();
+  }, []);
 
-  const handleCardClick = (id) => {
-    setActiveLesson(id);
-    setTimeout(() => {
-      navigate(`/lesson/${id}`);
-    }, 500);
+  const lessons = [
+    { id: 1, title: 'Lesson 1: Signs of a Chemical Reaction' },
+    { id: 2, title: 'Lesson 2: Acids, Bases, and Indicators' },
+    { id: 3, title: 'Lesson 3: Types of Chemical Reactions' },
+    { id: 4, title: 'Lesson 4: Impact of Reactions on Our World' },
+    { id: 5, title: 'Lesson 5: Law of Conservation of Mass' },
+  ];
+
+  const handleClick = (lesson) => {
+    const prevKey = `lesson${lesson.id - 1}`;
+    const isUnlocked = lesson.id === 1 || progress[prevKey]?.completed;
+
+    if (isUnlocked) {
+      clickAudio.current.currentTime = 0;
+      clickAudio.current.play().catch(() => {});
+      setTimeout(() => navigate(`/lesson/${lesson.id}`), 300);
+    } else {
+      errorAudio.current.play().catch(() => {});
+      const card = document.getElementById(`card-${lesson.id}`);
+      if (card) {
+        card.classList.add('shake');
+        setTimeout(() => card.classList.remove('shake'), 600);
+      }
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-10 px-6 relative bg-[#02010a] text-white font-sans overflow-hidden">
-      {/* Back Button */}
+    <div className="relative min-h-screen bg-[#02010a] text-white px-4 py-10 overflow-hidden">
+      <ParticleBackground />
+
       <button
         onClick={() => navigate('/')}
-        className="absolute top-6 left-6 flex items-center gap-2 text-cyan-300 hover:text-cyan-200 transition z-10"
+        className="absolute top-5 left-5 bg-cyan-400 hover:bg-cyan-300 text-black px-5 py-2 rounded-full z-20"
       >
-        <FiArrowLeft size={20} />
-        <span className="text-base">Back</span>
+        ← Home
       </button>
 
-      {/* Header */}
-      <h1 className="text-4xl sm:text-5xl font-bold text-cyan-300 mb-10 animate-pulse tracking-widest text-shadow-glow z-10">
-        ReactEd: Lessons
+      <h1 className="text-4xl font-bold text-center text-cyan-300 mb-10 z-10 relative">
+        🧪 Choose Your Lesson
       </h1>
 
-      {/* Lesson Cards */}
-      <div className="grid sm:grid-cols-2 gap-8 w-full max-w-5xl z-10">
-        {lessons.map((lesson) => (
-          <motion.div
-            key={lesson.id}
-            layoutId={`card-${lesson.id}`}
-            whileHover={{ scale: activeLesson ? 1 : 1.03 }}
-            animate={
-              activeLesson
-                ? activeLesson === lesson.id
-                  ? { scale: 1.1, zIndex: 20 }
-                  : { scale: 0.9, opacity: 0.3, zIndex: 0 }
-                : { scale: 1, opacity: 1 }
-            }
-            transition={{ duration: 0.5 }}
-            onClick={() => handleCardClick(lesson.id)}
-            className="w-full max-w-md aspect-[4/3] overflow-hidden transform origin-center bg-[rgba(2,1,10,0.8)] border border-cyan-400/20 backdrop-blur-lg p-6 rounded-lg hover:shadow-[0_0_15px_rgba(0,255,255,0.3)] cursor-pointer"
-          >
-            <div className="w-full h-full relative">
-              <img
-                src={lesson.image}
-                alt={`Lesson ${lesson.id}`}
-                className="absolute inset-0 w-full h-full object-cover rounded-md"
-              />
-              <div className="absolute inset-0 bg-black/40 rounded-md flex flex-col justify-end p-4">
-                <h2 className="text-lg text-cyan-200 font-semibold text-center px-2">
-                  {lesson.title}
-                </h2>
-                {/* 👇 Score Display */}
-                <p className="text-sm text-cyan-100 text-center mt-1">
-                  Score: {lessonScores[lesson.id] || 'Loading...'}
-                </p>
-                <div className="flex justify-end mt-2">
-                  <div className="bg-green-400 hover:bg-green-300 text-black w-10 h-10 mt-10 flex items-center justify-center rounded-full">
-                    <FiPlay size={20} />
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto z-10 relative">
+        {lessons.map((lesson) => {
+          const lessonKey = `lesson${lesson.id}`;
+          const prevKey = `lesson${lesson.id - 1}`;
+          const isUnlocked = lesson.id === 1 || progress[prevKey]?.completed;
+          const isCompleted = progress[lessonKey]?.completed;
+          const score = progress[lessonKey]?.score ?? null;
+          const animate = animateUnlock && lesson.id === 2;
+
+          return (
+            <div
+              key={lesson.id}
+              id={`card-${lesson.id}`}
+              onClick={() => handleClick(lesson)}
+              className={`cursor-pointer border border-cyan-400 rounded-xl shadow-xl overflow-hidden transition hover:scale-105
+                ${isUnlocked ? 'bg-white/10 hover:bg-white/20' : 'bg-white/5'}
+                ${animate ? 'animate-pulse-glow' : ''}
+              `}
+            >
+              <div
+                className="h-40 bg-cover bg-center relative"
+                style={{
+                  backgroundImage: `url(${lessonImages[lesson.id]})`,
+                  filter: isUnlocked ? 'brightness(1)' : 'brightness(0.5)',
+                }}
+              >
+                {/* Removed lock icon */}
+              </div>
+
+              <div className="p-4 text-center">
+                <h2 className="text-lg font-bold text-cyan-200 mb-1">{lesson.title}</h2>
+                {isCompleted && <div className="text-green-400 text-sm">✅ Completed</div>}
+                {score !== null && (
+                  <div className="text-yellow-300 text-sm mt-1">⭐ Score: {score}</div>
+                )}
               </div>
             </div>
-          </motion.div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Optional AnimatePresence */}
-      <AnimatePresence>
-        {activeLesson && (
-          <motion.div
-            layoutId={`card-${activeLesson}`}
-            className="fixed top-0 left-0 w-full h-full bg-[#02010a] z-40 flex items-center justify-center px-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          />
-        )}
-      </AnimatePresence>
+      <audio ref={unlockAudio} src={UnlockSound} preload="auto" />
+      <audio ref={errorAudio} src={ErrorSound} preload="auto" />
+      <audio ref={clickAudio} src={ClickSound} preload="auto" />
+
+      <style>{`
+        .shake {
+          animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-6px); }
+          50% { transform: translateX(6px); }
+          75% { transform: translateX(-6px); }
+        }
+        .animate-pulse-glow {
+          animation: pulseGlow 1.5s infinite ease-in-out;
+        }
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
+          50% { box-shadow: 0 0 20px rgba(0,255,255,0.8); }
+        }
+      `}</style>
     </div>
   );
 };

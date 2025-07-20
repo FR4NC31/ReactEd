@@ -8,4 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+   build: {
+    outDir: 'dist', // This must match what's in firebase.json
+  },
 })

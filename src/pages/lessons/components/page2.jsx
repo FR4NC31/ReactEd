@@ -1,109 +1,113 @@
-import React from 'react';
-import img1 from '../../../assets/page2img.png';
+import React, { useState } from 'react';
+import ChemReact from '../../../assets/chemreact.png';
 
-const PageTwo = () => {
+const PageFour = () => {
+  const [highlightedRow, setHighlightedRow] = useState(null);
+
+  const handleRowClick = (index) => {
+    setHighlightedRow(index === highlightedRow ? null : index);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-2xl font-bold mb-4">Types of Chemical Reactions</h2>
-        <img src={img1} className='w-full h-120' />
+    <div className="space-y-8 animate-fade-in">
+      {/* Section: How Scientists Represent Chemical Reactions */}
+      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl shadow-lg transition-transform hover:scale-[1.01]">
+        <h2 className="text-2xl font-bold text-cyan-300 mb-4">How Scientists Represent Chemical Reactions</h2>
+        <p className="text-white mb-4">
+          A chemical reaction is a process where substances change into new ones with different properties.
+          Reactants convert into products through the breaking and formation of chemical bonds.
+        </p>
+        <img
+          src={ChemReact}
+          alt="Chemical Reaction Diagram"
+          className="w-full max-h-[400px] object-contain bg-gray-800 rounded-lg mb-4 border border-cyan-400/20"
+        />
       </div>
 
-      {/* Synthesis Reaction */}
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">Synthesis Reaction</h2>
-        <p>A synthesis reaction occurs when two reactants interact to form one product. The product created is different from both of the reactants. The general equation represents this type of reaction:</p>
-        <p className="text-cyan-200">A + B → AB</p>
-        <p>In most cases, synthesis reactions release energy. Reactions that release energy are considered exothermic. A typical example of a synthesis reaction is the formation of table salt. Sodium and chlorine ions interact to form sodium chloride.</p>
-        <p className="text-cyan-200">Na⁺ + Cl⁻ → NaCl</p>
+      {/* Section: Describing Chemical Reactions */}
+      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl shadow-lg transition-transform hover:scale-[1.01]">
+        <h2 className="text-xl font-bold text-cyan-300 mb-4">Describing Chemical Reactions Using Chemical Equations</h2>
+        <p className="text-white mb-2">
+          A chemical equation uses symbols to represent a reaction. Reactants (left side) become products (right side), separated by an arrow.
+        </p>
+        <p className="text-white mb-2">
+          Coefficients, element symbols, and subscripts indicate the amounts and identities of substances involved.
+          The cation always comes first, such as NaCl instead of ClNa.
+        </p>
+        <p className="text-white">
+          Balanced chemical equations obey the law of conservation of mass and charge: same number of atoms and charges on both sides.
+        </p>
       </div>
 
-      {/* Decomposition Reaction */}
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">Decomposition Reaction</h2>
-        <p>A decomposition reaction occurs when the reactant breaks down into simpler products. Here is the general equation that represents this type of reaction:</p>
-        <p className="text-cyan-200">AB → A + B</p>
-        <p>Unlike synthesis reactions, decomposition reactions require energy to break the bonds present in the reactant. Reactions that require an input of energy are endothermic. A common example of a decomposition reaction is the decomposition of hydrogen peroxide. The decomposition of hydrogen peroxide results in water and oxygen gas. This is shown in the following equation:</p>
-        <p className="text-cyan-200">2H₂O₂ → 2H₂O + O₂</p>
-        <iframe
-          width="100%"
-          height="315"
-          src="https://www.youtube.com/embed/nGR9zo1oZlw"
-          title="Decomposition Reaction"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="rounded-lg mt-4"
-        ></iframe>
+      {/* Section: Examples of Reactions */}
+      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl shadow-lg transition-transform hover:scale-[1.01]">
+        <h2 className="text-xl font-bold text-cyan-300 mb-4">Examples of Chemical Reactions</h2>
+        <ul className="text-white space-y-2 list-disc list-inside mb-4">
+          <li><strong>Formation of Water:</strong> 2H₂ + O₂ → 2H₂O</li>
+          <li><strong>Combustion of Methane:</strong> CH₄ + 2O₂ → CO₂ + 2H₂O</li>
+          <li><strong>Decomposition of Calcium Carbonate:</strong> CaCO₃ → CaO + CO₂</li>
+        </ul>
+
+        {/* Interactive Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full mt-4 border-collapse text-sm border border-cyan-400/30">
+            <thead>
+              <tr className="bg-cyan-900 text-cyan-300">
+                <th className="p-3 border border-cyan-400/30">Part</th>
+                <th className="p-3 border border-cyan-400/30">Description</th>
+                <th className="p-3 border border-cyan-400/30">Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                {
+                  part: 'Reactants',
+                  description: 'Substances you start with',
+                  example: 'CH₄ (methane), O₂ (oxygen)',
+                },
+                {
+                  part: 'Products',
+                  description: 'New substances formed',
+                  example: 'CO₂ (carbon dioxide), H₂O (water)',
+                },
+              ].map((row, index) => (
+                <tr
+                  key={index}
+                  onClick={() => handleRowClick(index)}
+                  className={`transition-colors duration-300 cursor-pointer ${
+                    highlightedRow === index ? 'bg-cyan-800/40' : 'hover:bg-cyan-700/20'
+                  }`}
+                >
+                  <td className="p-3 border border-cyan-400/30 text-white">{row.part}</td>
+                  <td className="p-3 border border-cyan-400/30 text-white">{row.description}</td>
+                  <td className="p-3 border border-cyan-400/30 text-white">{row.example}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Single Replacement */}
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">Single Replacement Reaction</h2>
-        <p>Single replacement reactions, also known as single displacement reactions, occur when one reactant replaces part of the other reactant compound. This produces two new compounds. This type of reaction is represented by the general equation:</p>
-        <p className="text-cyan-200">AB + C → AC + B</p>
-        <p>In this equation, C replaces B in the reaction, and B is now a single compound. A common example of a single replacement reaction is the reaction of Tin chloride and zinc. In the reaction, zinc replaces tin to form zinc chloride and tin as a single element.</p>
-        <p className="text-cyan-200">SnCl₂ + Zn → ZnCl₂ + Sn</p>
-        <iframe
-          width="100%"
-          height="315"
-          src="https://www.youtube.com/embed/BjBWzd04Qzo"
-          title="Single Replacement Reaction"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="rounded-lg mt-4"
-        ></iframe>
-      </div>
-
-      {/* Double Replacement */}
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">Double Replacement Reaction</h2>
-        <p>A double replacement reaction, aka double displacement reaction, exchanges ionic species in two compounds to form two completely new compounds, with the exchange of ions between the reactants. Double replacement reactions swap cations or the anions, but not both. If both were swapped, no new compounds would be formed! This type of reaction is characterized by the formation of a new precipitate, gas, or molecular compound as one of the products.</p>
-        <p className="text-cyan-200">AB + CD → AC + BD</p>
-        <p>An example of a double-replacement reaction is the reaction between Lead nitrate and Potassium iodide. The lead cation and potassium cation switch places:</p>
-        <p className="text-cyan-200">Pb(NO₃)₂ + 2KI → PbI₂ + 2KNO₃</p>
-        <p>Another example: KCl + AgNO₃ → KNO₃ + AgCl</p>
-      </div>
-
-      {/* Precipitation */}
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">Precipitation Reaction</h2>
-        <p>Precipitation and neutralization are both double replacement reactions. These reactions both result in two completely new compounds through double replacement. A precipitation reaction occurs when two soluble compounds mix to form an insoluble solid. The solid that separates from the solution is called the precipitant. A classic example of a precipitation reaction is silver nitrate’s reaction with potassium chloride, which forms silver chloride, a white solid.</p>
-        <p className="text-cyan-200">AgNO₃(aq) + KCl(aq) → AgCl(s) + KNO₃(aq)</p>
-        <iframe
-          width="100%"
-          height="315"
-          src="https://www.youtube.com/embed/NNGETOShppM"
-          title="Precipitation Reaction"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="rounded-lg mt-4"
-        ></iframe>
-      </div>
-
-      {/* Acid-Base */}
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">Acid-Base Reaction</h2>
-        <p>Acid base reactions, or neutralization reactions are double displacement reactions that occur between acids and bases. Typically, acid-base neutralizations produce water and a salt. A common example of neutralization is between hydrochloric acid, a strong acid, sodium hydroxide, a strong base.</p>
-        <p className="text-cyan-200">HCl + NaOH → NaCl + H₂O</p>
-      </div>
-
-      {/* Combustion */}
-      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl">
-        <h2 className="text-cyan-300 text-xl font-bold mb-2">Combustion Reaction</h2>
-        <p>Combustion reactions are those that involve the burning of compounds. A reactant, usually a hydrocarbon, reacts with oxygen gas (O₂), to produce carbon dioxide gas (CO₂) and water vapor (H₂O). Combustion reactions also produce energy in the form of heat and/or light.</p>
-        <p className="text-cyan-200">2C₈H₁₈ + 25O₂ → 16CO₂ + 18H₂O</p>
-        <iframe
-          width="100%"
-          height="315"
-          src="https://www.youtube.com/embed/dx1Nk38SUr0"
-          title="Combustion Reaction"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="rounded-lg mt-4"
-        ></iframe>
+      {/* Section: How to Recognize a Chemical Reaction */}
+      <div className="bg-white/5 border border-cyan-400/20 p-6 rounded-xl shadow-lg transition-transform hover:scale-[1.01]">
+        <h2 className="text-xl font-bold text-cyan-300 mb-4">How to Recognize a Chemical Reaction?</h2>
+        <p className="text-white mb-4">
+          Not all changes are chemical. Chemical changes result in new substances, while physical changes do not change chemical identity.
+        </p>
+        <div className="aspect-video mt-6">
+          <iframe
+            width="100%"
+            height="100%"
+            src="https://www.youtube.com/embed/npyvZSBqyc0?si=_98kxOHBiWrP0_h0"
+            title="How to Recognize a Chemical Reaction"
+            frameBorder="0"
+            allowFullScreen
+            className="rounded-lg"
+          ></iframe>
+        </div>
       </div>
     </div>
   );
 };
 
-export default PageTwo;
+export default PageFour;
